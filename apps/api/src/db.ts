@@ -36,6 +36,8 @@ CREATE TABLE IF NOT EXISTS locales (
   UNIQUE(country, language)
 );
 
+INSERT OR IGNORE INTO locales (country, language) VALUES ('US', 'en');
+
 CREATE TABLE IF NOT EXISTS tracking_targets (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   app_id INTEGER NOT NULL,
@@ -57,6 +59,16 @@ CREATE TABLE IF NOT EXISTS runs (
   error TEXT,
   total_targets INTEGER NOT NULL DEFAULT 0,
   successful_targets INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS asa_runs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  status TEXT NOT NULL,
+  started_at TEXT NOT NULL,
+  finished_at TEXT,
+  error TEXT,
+  total_keywords INTEGER NOT NULL DEFAULT 0,
+  successful_keywords INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS rank_snapshots (
@@ -83,11 +95,27 @@ CREATE TABLE IF NOT EXISTS metadata_snapshots (
   FOREIGN KEY(locale_id) REFERENCES locales(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS keyword_popularity_snapshots (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  keyword_id INTEGER NOT NULL,
+  locale_id INTEGER NOT NULL,
+  asa_run_id INTEGER,
+  popularity_score INTEGER,
+  source TEXT NOT NULL DEFAULT 'asa_api',
+  checked_at TEXT NOT NULL,
+  FOREIGN KEY(keyword_id) REFERENCES keywords(id) ON DELETE CASCADE,
+  FOREIGN KEY(locale_id) REFERENCES locales(id) ON DELETE CASCADE,
+  FOREIGN KEY(asa_run_id) REFERENCES asa_runs(id) ON DELETE SET NULL
+);
+
 CREATE INDEX IF NOT EXISTS idx_rank_snapshots_target_date
 ON rank_snapshots(target_id, checked_at);
 
 CREATE INDEX IF NOT EXISTS idx_metadata_snapshots_app_locale_date
 ON metadata_snapshots(app_id, locale_id, checked_at);
+
+CREATE INDEX IF NOT EXISTS idx_keyword_popularity_keyword_locale_date
+ON keyword_popularity_snapshots(keyword_id, locale_id, checked_at);
 `;
 
 const defaultDbPath = resolve(process.cwd(), "data", "aso.sqlite");
