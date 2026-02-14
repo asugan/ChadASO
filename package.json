@@ -1,0 +1,17 @@
+{
+  "name": "aso-desktop-tool",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n API,WEB,DESKTOP -c cyan,green,magenta \"npm run dev -w @aso/api\" \"npm run dev -w @aso/renderer\" \"npm run dev -w @aso/desktop\"",
+    "build": "npm run build -w @aso/api && npm run build -w @aso/renderer"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "wait-on": "^8.0.1"
+  }
+}
